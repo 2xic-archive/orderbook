@@ -1,54 +1,74 @@
+use crate::orderbook::order::MarketSide;
 use crate::orderbook::order::Order;
 use std::collections::HashMap;
 
-pub struct BsEOrderBook {
+pub struct OrderLine {
     pub orders: Vec<Order>,
+    pub quantity: u8,
+}
+
+pub struct BsEOrderBook {
+    order_layout: HashMap<u8, OrderLine>,
+
+    depth: u8,
+
+    pub best: u8,
+
+    pub orders: u8,
+
+    market_side: MarketSide,
 }
 
 pub trait BasicOrderBook {
-    fn new(order: Order) -> Self;
+    fn new(market_side: MarketSide) -> Self;
 
     fn add_orders(&mut self, order: Order);
 
-    fn match_orders(&mut self);
-
-    fn clear(&mut self);
+    fn remove_best(&mut self);
 }
 
 impl BasicOrderBook for BsEOrderBook {
-    fn new(order: Order) -> BsEOrderBook {
-        let orders = vec![order];
-        return BsEOrderBook { orders };
+    fn new(market_side: MarketSide) -> BsEOrderBook {
+        return BsEOrderBook {
+            market_side,
+            depth: 0,
+            best: 0,
+            orders: 0,
+            order_layout: HashMap::new(),
+        };
     }
 
     fn add_orders(&mut self, order: Order) {
-        self.orders.push(order);
-    }
-
-    fn match_orders(&mut self) {
-        let mut orders: HashMap<u8, Vec<Order>> = HashMap::new();
-        for order in &self.orders {
-            match orders.get_mut(&order.price) {
-                Some(data) => {
-                    data.push(*order);
-                    if data.len() == 2 {
-                        data.clear();
-                    }
-                }
-                None => {
-                    orders.insert(order.price, vec![*order]);
-                }
+        match self.order_layout.get_mut(&order.price) {
+            Some(data) => {
+                data.orders.push(order);
+            }
+            None => {
+                let orderline = OrderLine {
+                    orders: vec![order],
+                    quantity: 1,
+                };
+                self.order_layout.insert(order.price, orderline);
+                self.depth += 1;
             }
         }
-        self.orders.clear();
-        for price_orders in orders.values() {
-            for order in price_orders {
-                self.orders.push(*order);
-            }
-        }
+        self.best = *self.order_layout.keys().max_by(|x, y| x.cmp(y)).unwrap();
+        self.orders += 1;
     }
 
-    fn clear(&mut self) { 
-        self.orders.clear();
+    fn remove_best(&mut self) {
+        self.orders -= 1;
+        self.best = *self.order_layout.keys().max_by(|x, y| x.cmp(y)).unwrap();
+
+        match self.order_layout.get_mut(&self.best) {
+            Some(data) => {
+                let order = data.orders.pop().unwrap();
+                data.quantity -= 1;
+                if data.quantity == 0 {
+                    self.order_layout.remove(&self.best);
+                }
+            }
+            None => {}
+        }
     }
 }

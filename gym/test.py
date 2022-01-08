@@ -1,4 +1,6 @@
 import liborderbooklib
 
-print(liborderbooklib.hello("1"))
+print(liborderbooklib.create_order())
+print(liborderbooklib.create_order())
+print(liborderbooklib.get_order_count())
 

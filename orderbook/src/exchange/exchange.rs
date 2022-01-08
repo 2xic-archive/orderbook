@@ -11,9 +11,11 @@ pub struct Exchange {
 pub trait BasicExchange {
     fn new() -> Self;
 
-    fn addOrder(&mut self, order: Order);
+    fn add_order(&mut self, order: Order);
 
     fn process(&mut self, order: Order);
+
+    fn get_order_count(&mut self) -> u8;
 }
 
 impl BasicExchange for Exchange {
@@ -26,7 +28,11 @@ impl BasicExchange for Exchange {
          };
     }
 
-    fn addOrder(&mut self, order: Order) {
+    fn get_order_count(&mut self) -> u8 {
+        return self.buy_orderbook.orders;
+    }
+
+    fn add_order(&mut self, order: Order) {
         if order.market_side == MarketSide::BUY {
             self.buy_orderbook.add_orders(order);
         } else {
@@ -35,7 +41,7 @@ impl BasicExchange for Exchange {
     }
 
      fn process(&mut self, order: Order) {
-        self.addOrder(order);
+        self.add_order(order);
 
         if self.sell_orderbook.orders > 0 && self.buy_orderbook.orders > 0{
             if order.market_side == MarketSide::BUY {

@@ -1,7 +1,5 @@
 use crate::orderbook::order::MarketSide;
 use crate::orderbook::order::Order;
-use crate::orderbook::orderbook::OrderLine;
-use std::collections::HashMap;
 
 pub trait Trader {
     fn new() -> Self;

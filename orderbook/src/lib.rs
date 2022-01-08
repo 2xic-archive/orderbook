@@ -1,24 +1,50 @@
-
 use crate::exchange::exchange::BasicExchange;
+use crate::orderbook::order::Order;
+use crate::orderbook::order::MarketSide;
 
 #[macro_use]
 extern crate cpython;
 
-use cpython::{Python, PyResult};
+use crate::exchange::exchange::Exchange;
+use cpython::{PyResult, Python};
+use std::sync::Mutex;
 
-fn hello(_py: Python, val: &str) -> PyResult<u64> {
+#[macro_use]
+extern crate lazy_static;
 
-    print!("hello");
-    print!("{}", val);
+lazy_static! {
+    static ref EXCHANGE_REF: Mutex<Exchange> =  Mutex::new(BasicExchange::new());
+}
+
+fn create_order(_py: Python) -> PyResult<u8> {
+    EXCHANGE_REF.lock().unwrap().add_order(Order {
+        price: 1,
+        market_side: MarketSide::BUY,
+        time: 0,
+        id: 0,
+    });
 
     Ok(1)
 }
 
-py_module_initializer!(liborderbooklib, initliborderbooklib, PyInit_liborderbooklib, |py, m | {
-    m.add(py, "__doc__", "This module is implemented in Rust")?;
-    m.add(py, "hello", py_fn!(py, hello(val: &str)))?;
-    Ok(())
-});
+fn get_order_count(_py: Python) -> PyResult<u8> {
+    let size: u8 = EXCHANGE_REF.lock().unwrap().get_order_count();
+
+    Ok(size)
+}
+
+py_module_initializer!(
+    liborderbooklib,
+    initliborderbooklib,
+    PyInit_liborderbooklib,
+    |py, m| {
+        m.add(py, "__doc__", "This module is implemented in Rust")?;
+        m.add(py, "create_order", py_fn!(py, create_order()))?;
+        m.add(py, "get_order_count", py_fn!(py, get_order_count()))?;
+
+        Ok(())
+    }
+);
 
 mod exchange;
 mod orderbook;

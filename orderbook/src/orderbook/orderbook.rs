@@ -16,7 +16,7 @@ pub struct BsEOrderBook {
 
     pub orders: u8,
 
-    market_side: MarketSide,
+    pub market_side: MarketSide,
 }
 
 pub trait BasicOrderBook {
@@ -62,7 +62,7 @@ impl BasicOrderBook for BsEOrderBook {
 
         match self.order_layout.get_mut(&self.best) {
             Some(data) => {
-                let order = data.orders.pop().unwrap();
+                data.orders.pop().unwrap();
                 data.quantity -= 1;
                 if data.quantity == 0 {
                     self.order_layout.remove(&self.best);

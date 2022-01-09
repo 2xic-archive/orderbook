@@ -1,3 +1,4 @@
+use crate::orderbook::orderbook::SimpleOrderLine;
 use crate::orderbook::order::MarketSide;
 use crate::orderbook::order::Order;
 use crate::orderbook::orderbook::BasicOrderBook;
@@ -16,16 +17,20 @@ pub trait BasicExchange {
     fn process(&mut self, order: Order);
 
     fn get_order_count(&mut self) -> u8;
+
+    fn get_buy_orderbook(&mut self) -> Vec<SimpleOrderLine>;
+
+    fn get_sell_orderbook(&mut self) -> Vec<SimpleOrderLine>;
 }
 
 impl BasicExchange for Exchange {
     fn new() -> Exchange {
         let buy_orderbook: BsEOrderBook = BasicOrderBook::new(MarketSide::BUY);
         let sell_orderbook: BsEOrderBook = BasicOrderBook::new(MarketSide::SELL);
-        return Exchange { 
+        return Exchange {
             buy_orderbook,
             sell_orderbook,
-         };
+        };
     }
 
     fn get_order_count(&mut self) -> u8 {
@@ -40,10 +45,18 @@ impl BasicExchange for Exchange {
         }
     }
 
-     fn process(&mut self, order: Order) {
+    fn get_buy_orderbook(&mut self) -> Vec<SimpleOrderLine> {
+        return self.buy_orderbook.get_orders();
+    }
+
+    fn get_sell_orderbook(&mut self) -> Vec<SimpleOrderLine> {
+        return self.sell_orderbook.get_orders();
+    }
+
+    fn process(&mut self, order: Order) {
         self.add_order(order);
 
-        if self.sell_orderbook.orders > 0 && self.buy_orderbook.orders > 0{
+        if self.sell_orderbook.orders > 0 && self.buy_orderbook.orders > 0 {
             if order.market_side == MarketSide::BUY {
                 if self.sell_orderbook.best <= self.buy_orderbook.best {
                     self.sell_orderbook.remove_best();

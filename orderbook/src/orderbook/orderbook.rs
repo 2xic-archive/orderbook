@@ -7,6 +7,11 @@ pub struct OrderLine {
     pub quantity: u8,
 }
 
+pub struct SimpleOrderLine {
+    pub quantity: u8,
+    pub price: u8,
+}
+
 pub struct BsEOrderBook {
     order_layout: HashMap<u8, OrderLine>,
 
@@ -25,6 +30,8 @@ pub trait BasicOrderBook {
     fn add_orders(&mut self, order: Order);
 
     fn remove_best(&mut self);
+
+    fn get_orders(&mut self) -> Vec<SimpleOrderLine>;
 }
 
 impl BasicOrderBook for BsEOrderBook {
@@ -38,10 +45,23 @@ impl BasicOrderBook for BsEOrderBook {
         };
     }
 
+    fn get_orders(&mut self) -> Vec<SimpleOrderLine> {
+        let mut orders: Vec<SimpleOrderLine> = vec![];
+        self.order_layout.iter().for_each(|x| {
+            orders.push(SimpleOrderLine{
+                price: *x.0,
+                quantity: x.1.quantity,
+            });
+        });
+
+        return orders;
+    }
+
     fn add_orders(&mut self, order: Order) {
         match self.order_layout.get_mut(&order.price) {
             Some(data) => {
                 data.orders.push(order);
+                data.quantity += 1;
             }
             None => {
                 let orderline = OrderLine {

@@ -2,24 +2,26 @@ use crate::orderbook::order::MarketSide;
 use crate::orderbook::order::Order;
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct OrderLine {
     pub orders: Vec<Order>,
-    pub quantity: u8,
+    pub quantity: u32,
 }
 
 pub struct SimpleOrderLine {
-    pub quantity: u8,
-    pub price: u8,
+    pub quantity: u32,
+    pub price: u32,
 }
 
+#[derive(Clone)]
 pub struct BsEOrderBook {
-    order_layout: HashMap<u8, OrderLine>,
+    order_layout: HashMap<u32, OrderLine>,
 
-    depth: u8,
+    depth: u32,
 
-    pub best: u8,
+    pub best: u32,
 
-    pub orders: u8,
+    pub orders: u32,
 
     pub market_side: MarketSide,
 }

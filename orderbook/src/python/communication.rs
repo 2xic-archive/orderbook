@@ -1,19 +1,13 @@
-use crate::BasicExchange;
-use crate::Exchange;
-use crate::Mutex;
-
-use cpython::{py_class, PyDict, PyObject, PyResult, Python};
-
 pub mod communication {
-
     use crate::orderbook::orderbook::SimpleOrderLine;
-use crate::EXCHANGE_REF;
+    use crate::EXCHANGE_REF;
+    use crate::TRADES_REF;
     use cpython::PyList;
 
     use crate::cpython::PythonObject;
-    use crate::cpython::ToPyObject;
     use crate::exchange::exchange::BasicExchange;
     use crate::orderbook::order::MarketSide;
+    use crate::trader::base_trader::BaseTrader;
     use crate::Order;
     use cpython::PyDict;
     use cpython::PyObject;
@@ -31,7 +25,7 @@ use crate::EXCHANGE_REF;
         }
     });
 
-    pub fn create_buy_order(_py: Python, price: u8) -> PyResult<u8> {
+    pub fn create_buy_order(_py: Python, price: u32) -> PyResult<u32> {
         EXCHANGE_REF.lock().unwrap().add_order(Order {
             price,
             market_side: MarketSide::BUY,
@@ -42,7 +36,7 @@ use crate::EXCHANGE_REF;
         Ok(1)
     }
 
-    pub fn create_sell_order(_py: Python, price: u8) -> PyResult<u8> {
+    pub fn create_sell_order(_py: Python, price: u32) -> PyResult<u32> {
         EXCHANGE_REF.lock().unwrap().add_order(Order {
             price,
             market_side: MarketSide::SELL,
@@ -53,8 +47,17 @@ use crate::EXCHANGE_REF;
         Ok(1)
     }
 
-    pub fn get_order_count(_py: Python) -> PyResult<u8> {
-        let size: u8 = EXCHANGE_REF.lock().unwrap().get_order_count();
+    pub fn step(_py: Python) -> PyResult<u32> {
+        TRADES_REF.lock().unwrap().iter_mut().for_each(|item| {
+            let exchange_ref = EXCHANGE_REF.lock().unwrap();
+            item.try_to_create_order(exchange_ref);
+        });
+
+        Ok(3)
+    }
+
+    pub fn get_order_count(_py: Python) -> PyResult<u32> {
+        let size: u32 = EXCHANGE_REF.lock().unwrap().get_order_count();
 
         Ok(size)
     }

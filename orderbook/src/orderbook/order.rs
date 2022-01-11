@@ -3,9 +3,9 @@
 #[derive(Copy, Clone)]
 pub struct Order {
     pub market_side: MarketSide,
-    pub price:  u8,
-    pub time: u8,
-    pub id: u8,
+    pub price:  u32,
+    pub time: u32,
+    pub id: u32,
 }
 
 

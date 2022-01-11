@@ -8,7 +8,7 @@ edition = "2018"
 
 [lib]
 name = "orderbooklib"
-crate-type = ["dylib"]
+crate-type = ["rlib", "dylib"]
 
 [dependencies.cpython]
 version = "0.7"

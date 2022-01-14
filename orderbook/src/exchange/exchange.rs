@@ -1,15 +1,21 @@
-use crate::trader::base_trader::TraderStrcuture;
+use crate::exchange::order_tape::BasicOrderTape;
+use crate::exchange::order_tape::OrderTape;
 use crate::orderbook::order::MarketSide;
-use crate::orderbook::orderbook::SimpleOrderLine;
-use crate::Order;
 use crate::orderbook::orderbook::BasicOrderBook;
 use crate::orderbook::orderbook::BsEOrderBook;
+use crate::orderbook::orderbook::SimpleOrderLine;
+use crate::trader::base_trader::TraderStrcuture;
+use crate::Order;
+
+extern crate rand;
+use rand::{thread_rng, Rng};
 
 #[derive(Clone)]
 pub struct Exchange {
     pub buy_orderbook: BsEOrderBook,
     pub sell_orderbook: BsEOrderBook,
     pub traders: Vec<TraderStrcuture>,
+    pub order_tape: OrderTape,
 }
 
 pub trait BasicExchange {
@@ -24,6 +30,10 @@ pub trait BasicExchange {
     fn get_buy_orderbook(&mut self) -> Vec<SimpleOrderLine>;
 
     fn get_sell_orderbook(&mut self) -> Vec<SimpleOrderLine>;
+
+    fn empty_tape(&mut self) -> u32;
+
+    fn can_prcocess_order(&mut self) -> bool;
 }
 
 impl Exchange {
@@ -37,10 +47,6 @@ impl Exchange {
 }
 
 impl BasicExchange for Exchange {
-    fn add_order(&mut self, order: Order) {
-        self.add_order(order);
-    }
-
     fn new() -> Exchange {
         let buy_orderbook: BsEOrderBook = BasicOrderBook::new(MarketSide::BUY);
         let sell_orderbook: BsEOrderBook = BasicOrderBook::new(MarketSide::SELL);
@@ -54,6 +60,7 @@ impl BasicExchange for Exchange {
             buy_orderbook,
             sell_orderbook,
             traders: vec![trader],
+            order_tape: BasicOrderTape::new(),
         };
     }
 
@@ -67,6 +74,10 @@ impl BasicExchange for Exchange {
 
     fn get_sell_orderbook(&mut self) -> Vec<SimpleOrderLine> {
         return self.sell_orderbook.get_orders();
+    }
+
+    fn add_order(&mut self, order: Order) {
+        self.order_tape.add_order(order);
     }
 
     fn process(&mut self, order: Order) {
@@ -85,5 +96,28 @@ impl BasicExchange for Exchange {
                 }
             }
         }
+    }
+
+    fn empty_tape(&mut self) -> u32 {
+        while 0 < self.order_tape.orders_on_tape.len() {
+            let order = self.order_tape.get_orders();
+            if self.can_prcocess_order() {
+                self.process(order);
+            }
+        }
+
+        return 1;
+    }
+    
+    fn can_prcocess_order(&mut self) -> bool { 
+        let mut rng = thread_rng();
+        let x: f64 = rng.gen();
+        let is_network_error = x < 0.01;
+
+        if is_network_error {
+            return false;
+        }
+
+        return true;
     }
 }

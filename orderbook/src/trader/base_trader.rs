@@ -27,7 +27,8 @@ where
 {
     fn try_to_create_order(&mut self, mut exchange: MutexGuard<Exchange>) -> u8 {
         if self.can_create_order() {
-            exchange.add_order(self.create_order())
+            let order = self.create_order();
+            exchange.add_order(order)
         }
 
         return 0;

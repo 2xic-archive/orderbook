@@ -52,6 +52,7 @@ pub mod communication {
             let exchange_ref = EXCHANGE_REF.lock().unwrap();
             item.try_to_create_order(exchange_ref);
         });
+        EXCHANGE_REF.lock().unwrap().empty_tape();
 
         Ok(3)
     }

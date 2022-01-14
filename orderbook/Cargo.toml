@@ -19,3 +19,6 @@ version="0.2"
 
 [dependencies.lazy_static]
 version = "1.4.0"
+
+[dependencies.rand]
+version = "0.5.0"
